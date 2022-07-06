@@ -7,9 +7,9 @@ public interface IPass
         get;
     } 
     void Init();
-    IPasswordTree List();
-    IPasswordTree List(string subfolder);
-    IPasswordTree Find(string name);
+    IPasswordNode List();
+    IPasswordNode List(string subfolder);
+    IPasswordNode Find(string name);
     IPassword Show(string name);
     IPassword Show(IPasswordNode passwordNode);
     IPassword Insert(IPassword password);
