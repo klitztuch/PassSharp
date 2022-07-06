@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PassSharp.Lib", "PassSharp.Lib\PassSharp.Lib.csproj", "{1E8228AB-587E-49C4-9B8B-DFBDD2927118}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PassSharp.Lib.Test", "PassSharp.Lib.Test\PassSharp.Lib.Test.csproj", "{58FE572A-574E-4607-98A6-AF5A1268646F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1E8228AB-587E-49C4-9B8B-DFBDD2927118}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E8228AB-587E-49C4-9B8B-DFBDD2927118}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E8228AB-587E-49C4-9B8B-DFBDD2927118}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E8228AB-587E-49C4-9B8B-DFBDD2927118}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58FE572A-574E-4607-98A6-AF5A1268646F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58FE572A-574E-4607-98A6-AF5A1268646F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58FE572A-574E-4607-98A6-AF5A1268646F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58FE572A-574E-4607-98A6-AF5A1268646F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
