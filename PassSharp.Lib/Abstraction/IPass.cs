@@ -6,11 +6,17 @@ public interface IPass
     {
         get;
     } 
+
+    string PasswordStoreLocation
+    {
+        get;
+        init;
+    }
     void Init();
     Task<IPasswordNode> List();
     IPasswordNode List(string subfolder);
     IPasswordNode Find(string name);
-    IPassword Show(string name);
+    Task<IPassword> Show(string name);
     IPassword Show(IPasswordNode passwordNode);
     IPassword Insert(IPassword password);
     IPassword Edit(string name, IPassword password);

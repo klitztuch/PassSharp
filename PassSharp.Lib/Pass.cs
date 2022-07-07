@@ -1,11 +1,22 @@
 using System.Text;
 using CliWrap;
+using PassSharp.Lib.Adapter;
+using PassSharp.Lib.Adapter.Abstraction;
 
 namespace PassSharp.Lib;
 
 public class Pass : IPass
 {
+    private IPassAdapter _passAdapter { get; set; }
     public IGit Git { get; }
+    public string PasswordStoreLocation { get; init; }
+
+    public Pass(IPassAdapter passAdapter, IGit git)
+    {
+        _passAdapter = passAdapter;
+        Git = git;
+    }
+
     public void Init()
     {
         throw new NotImplementedException();
@@ -31,9 +42,10 @@ public class Pass : IPass
         throw new NotImplementedException();
     }
 
-    public IPassword Show(string name)
+    public async Task<IPassword> Show(string name)
     {
-        throw new NotImplementedException();
+        var password = await _passAdapter.Show(name);
+        return new Password();
     }
 
     public IPassword Show(IPasswordNode passwordNode)
