@@ -7,7 +7,7 @@ public interface IPass
         get;
     } 
     void Init();
-    IPasswordNode List();
+    Task<IPasswordNode> List();
     IPasswordNode List(string subfolder);
     IPasswordNode Find(string name);
     IPassword Show(string name);
