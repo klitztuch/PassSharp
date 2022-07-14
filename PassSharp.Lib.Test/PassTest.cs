@@ -63,6 +63,21 @@ public class PassTest : IDisposable
         Assert.Equal(_testFilesCount, result.Data?.Count());
         Assert.Equal(1, result.Children?.Count());
     }
+    
+    [Fact]
+    public async void ListNoDirectoryTest()
+    {
+        // arrange
+        var passAdapterMock = new Mock<IPassCliAdapter>();
+        var gitMock = new Mock<IGit>();
+        var pass = new Pass(passAdapterMock.Object, gitMock.Object){
+            PasswordStoreLocation = _passwordStoreDirectory + "-wrong"
+        };
+        // act
+        var result = await pass.List();
+        // assert
+        Assert.Null(result);
+    }
 
     public void Dispose()
     {

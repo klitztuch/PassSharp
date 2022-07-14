@@ -23,9 +23,7 @@ public class Pass : IPass
     public async Task<ITreeNode<IPassword>> List()
     {
         var directory = new DirectoryInfo(PasswordStoreLocation);
-        var files = await WalkDirectoryTree(directory);
-
-        return files;
+        return await WalkDirectoryTree(directory);
     }
 
     public async Task<ITreeNode<IPassword>> List(string subfolder)
@@ -91,7 +89,7 @@ public class Pass : IPass
         throw new NotImplementedException();
     }
 
-    private async Task<ITreeNode<IPassword>> WalkDirectoryTree(DirectoryInfo directory)
+    private async Task<ITreeNode<IPassword>>? WalkDirectoryTree(DirectoryInfo directory)
     {
         var root = new TreeNode<IPassword>(directory);
         FileInfo[]? files = null;
@@ -102,13 +100,13 @@ public class Pass : IPass
         catch (UnauthorizedAccessException e)
         {
             Console.WriteLine(e);
+            return null;
         }
         catch (DirectoryNotFoundException e)
         {
             Console.WriteLine(e);
+            return null;
         }
-
-        if (files == null) return null;
 
         var nodes = files.Select(file => new Password(file.FullName))
             .ToArray();
