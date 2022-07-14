@@ -1,54 +1,52 @@
-using System.Text;
-using CliWrap;
-using PassSharp.Lib.Adapter;
+using PassSharp.Lib.Abstraction;
 using PassSharp.Lib.Adapter.Abstraction;
 
 namespace PassSharp.Lib;
 
 public class Pass : IPass
 {
-    private IPassAdapter _passAdapter { get; set; }
-    public IGit Git { get; }
-    public string PasswordStoreLocation { get; init; }
-
-    public Pass(IPassAdapter passAdapter, IGit git)
+    public Pass(IPassCliAdapter passCliCliAdapter, IGit git)
     {
-        _passAdapter = passAdapter;
+        _passCliCliAdapter = passCliCliAdapter;
         Git = git;
     }
+
+    private readonly IPassCliAdapter _passCliCliAdapter;
+    public IGit Git { get; }
+    public string PasswordStoreLocation { get; init; }
 
     public void Init()
     {
         throw new NotImplementedException();
     }
 
-    public async Task<IPasswordNode> List()
+    public async Task<ITreeNode<IPassword>> List()
     {
-        var result = new StringBuilder();
-        var t = await Cli.Wrap("pass")
-            .WithArguments("ls")
-            .WithStandardOutputPipe(PipeTarget.ToStringBuilder(result))
-            .ExecuteAsync();
-        return null;
+        var directory = new DirectoryInfo(PasswordStoreLocation);
+        var files = await WalkDirectoryTree(directory);
+
+        return files;
     }
 
-    public IPasswordNode List(string subfolder)
+    public async Task<ITreeNode<IPassword>> List(string subfolder)
+    {
+        var directory = new DirectoryInfo(subfolder);
+        return await WalkDirectoryTree(directory);
+    }
+
+    public ITreeNode<IPassword> Find(string name)
     {
         throw new NotImplementedException();
     }
 
-    public IPasswordNode Find(string name)
-    {
-        throw new NotImplementedException();
-    }
 
     public async Task<IPassword> Show(string name)
     {
-        var password = await _passAdapter.Show(name);
-        return new Password();
+        var password = await _passCliCliAdapter.Show(name);
+        return new Password(password);
     }
 
-    public IPassword Show(IPasswordNode passwordNode)
+    public IPassword Show(ITreeNode<Password> treeNode)
     {
         throw new NotImplementedException();
     }
@@ -91,5 +89,39 @@ public class Pass : IPass
     public string Version()
     {
         throw new NotImplementedException();
+    }
+
+    private async Task<ITreeNode<IPassword>> WalkDirectoryTree(DirectoryInfo directory)
+    {
+        var root = new TreeNode<IPassword>(directory);
+        FileInfo[]? files = null;
+        try
+        {
+            files = directory.GetFiles();
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            Console.WriteLine(e);
+        }
+        catch (DirectoryNotFoundException e)
+        {
+            Console.WriteLine(e);
+        }
+
+        if (files == null) return null;
+
+        var nodes = files.Select(file => new Password(file.FullName))
+            .ToArray();
+
+        root.Data = nodes;
+        
+        var subDirs = directory.GetDirectories();
+        foreach (var subDir in subDirs)
+        {
+            var sudNode = await WalkDirectoryTree(subDir);
+            root.AddChild(sudNode);
+        }
+
+        return root;
     }
 }

@@ -1,23 +1,17 @@
-namespace PassSharp.Lib;
+namespace PassSharp.Lib.Abstraction;
 
 public interface IPass
 {
-    IGit Git
-    {
-        get;
-    } 
+    IGit Git { get; }
 
-    string PasswordStoreLocation
-    {
-        get;
-        init;
-    }
+    string PasswordStoreLocation { get; init; }
+
     void Init();
-    Task<IPasswordNode> List();
-    IPasswordNode List(string subfolder);
-    IPasswordNode Find(string name);
+    Task<ITreeNode<IPassword>> List();
+    Task<ITreeNode<IPassword>> List(string subfolder);
+    ITreeNode<IPassword> Find(string name);
     Task<IPassword> Show(string name);
-    IPassword Show(IPasswordNode passwordNode);
+    IPassword Show(ITreeNode<Password> treeNode);
     IPassword Insert(IPassword password);
     IPassword Edit(string name, IPassword password);
     IPassword Generate(string name, int? length = null);

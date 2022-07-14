@@ -4,7 +4,7 @@ using PassSharp.Lib.Adapter.Abstraction;
 
 namespace PassSharp.Lib.Adapter;
 
-public class PassAdapter : IPassAdapter
+public class PassCliAdapter : IPassCliAdapter
 {
     public async Task<string> Show(string name)
     {
