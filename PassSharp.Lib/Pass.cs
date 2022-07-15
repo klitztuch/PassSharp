@@ -5,13 +5,14 @@ namespace PassSharp.Lib;
 
 public class Pass : IPass
 {
+    private readonly IPassCliAdapter _passCliCliAdapter;
+
     public Pass(IPassCliAdapter passCliCliAdapter, IGit git)
     {
         _passCliCliAdapter = passCliCliAdapter;
         Git = git;
     }
 
-    private readonly IPassCliAdapter _passCliCliAdapter;
     public IGit Git { get; }
     public string PasswordStoreLocation { get; init; }
 
@@ -89,10 +90,10 @@ public class Pass : IPass
         throw new NotImplementedException();
     }
 
-    private async Task<ITreeNode<IPassword>>? WalkDirectoryTree(DirectoryInfo directory)
+    private async Task<ITreeNode<IPassword>?> WalkDirectoryTree(DirectoryInfo directory)
     {
         var root = new TreeNode<IPassword>(directory);
-        FileInfo[]? files = null;
+        FileInfo[]? files;
         try
         {
             files = directory.GetFiles();
@@ -112,12 +113,13 @@ public class Pass : IPass
             .ToArray();
 
         root.Data = nodes;
-        
+
         var subDirs = directory.GetDirectories();
         foreach (var subDir in subDirs)
         {
-            var sudNode = await WalkDirectoryTree(subDir);
-            root.AddChild(sudNode);
+            var subNode = await WalkDirectoryTree(subDir);
+
+            if (subNode != null) root.AddChild(subNode);
         }
 
         return root;
