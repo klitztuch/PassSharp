@@ -1,3 +1,4 @@
+using Libgpgme;
 using PassSharp.Lib.Abstraction;
 using PassSharp.Lib.Adapter.Abstraction;
 
@@ -21,46 +22,86 @@ public class Pass : IPass
         throw new NotImplementedException();
     }
 
-    public async Task<ITreeNode<IPassword>> List()
+    public async Task<ITreeNode<IPassword>?> List()
     {
         var directory = new DirectoryInfo(PasswordStoreLocation);
         return await WalkDirectoryTree(directory);
     }
 
-    public async Task<ITreeNode<IPassword>> List(string subfolder)
+    public async Task<ITreeNode<IPassword>?> List(string subfolder)
     {
         var directory = new DirectoryInfo(subfolder);
         return await WalkDirectoryTree(directory);
     }
 
-    public ITreeNode<IPassword> Find(string name)
+    public async Task<ITreeNode<IPassword>> Find(string name)
     {
         throw new NotImplementedException();
     }
 
 
-    public async Task<IPassword> Show(string name)
+    public async Task<IPassword?> Show(string name)
     {
-        var password = await _passCliCliAdapter.Show(name);
-        return new Password(password);
+        var passwords = (await Find(name)).Data;
+        if (passwords == null)
+        {
+            return null;
+        }
+
+        var path = passwords.FirstOrDefault()?.Path;
+        var file = new GpgmeMemoryData(path);
+        var mb = new MemoryStream();
+        var streamData = new GpgmeStreamData(mb);
+
+        var context = new Context();
+        context.SetEngineInfo(Protocol.OpenPGP, null, null);
+
+        var dest = context.Decrypt(file, streamData);
+        
+        mb.Position = 0;
+        string password;
+        var information = new Dictionary<string, string>();
+        using (var reader = new StreamReader(mb))
+        {
+            var fileContent = (await reader.ReadToEndAsync()).Split(Environment.NewLine);
+            password = fileContent[0];
+            foreach (var pair in fileContent)
+            {
+                var keyValue = pair.Split(": ");
+                if (keyValue.Length == 1)
+                {
+                    continue;
+                }
+
+                information.Add(keyValue[0], keyValue[1]);
+            }
+        }
+
+        file.Close();
+        mb.Close();
+        return new Password(path)
+        {
+            Information = information,
+            PasswordValue = password
+        };
     }
 
-    public IPassword Show(ITreeNode<Password> treeNode)
+    public Task<IPassword> Show(ITreeNode<Password> treeNode)
     {
         throw new NotImplementedException();
     }
 
-    public IPassword Insert(IPassword password)
+    public Task<IPassword> Insert(IPassword password)
     {
         throw new NotImplementedException();
     }
 
-    public IPassword Edit(string name, IPassword password)
+    public Task<IPassword> Edit(string name, IPassword password)
     {
         throw new NotImplementedException();
     }
 
-    public IPassword Generate(string name, int? length = null)
+    public Task<IPassword> Generate(string name, int? length = null)
     {
         throw new NotImplementedException();
     }
