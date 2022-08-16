@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Moq;
@@ -56,12 +57,10 @@ public class PassTest : IDisposable
             PasswordStoreLocation = _passwordStoreDirectory
         };
         // act
-        var result = await pass.List();
+        var result =  pass.List();
         // assert
-        Assert.IsAssignableFrom<ITreeNode<IPassword>>(result);
-        Assert.IsType<TreeNode<IPassword>>(result);
-        Assert.Equal(_testFilesCount, result.Data?.Count());
-        Assert.Equal(1, result.Children?.Count());
+        Assert.IsAssignableFrom<IEnumerable<IPassword>>(result);
+        Assert.Equal(_testFilesCount, result.Count());
     }
     
     [Fact]
@@ -74,7 +73,7 @@ public class PassTest : IDisposable
             PasswordStoreLocation = _passwordStoreDirectory + "-wrong"
         };
         // act
-        var result = await pass.List();
+        var result = pass.List();
         // assert
         Assert.Null(result);
     }
