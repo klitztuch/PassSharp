@@ -31,7 +31,7 @@ public class Pass : IPass
     public IEnumerable<IPassword> List(string subfolder)
     {
         var directory = new DirectoryInfo(PasswordStoreLocation);
-        return directory.GetFileSystemInfos("*", SearchOption.AllDirectories)
+        return directory.GetFiles("*", SearchOption.AllDirectories)
             .Select(o => new Password(o.FullName));
     }
 
