@@ -1,4 +1,5 @@
 using System.Security;
+using System.Security.Cryptography;
 using LibGit2Sharp;
 using PassSharp.Lib.Abstraction;
 
@@ -19,13 +20,9 @@ public class Pass : IPass
     public void Init()
     {
         if (!Directory.Exists(PasswordStoreLocation))
-        {
             Directory.CreateDirectory(PasswordStoreLocation);
-        }
         else
-        {
             throw new Exception("PasswordStore already exists");
-        }
     }
 
     public IEnumerable<IPassword> List()
@@ -48,23 +45,16 @@ public class Pass : IPass
         return passwords;
     }
 
-
-    public Task<IPassword> Insert(IPassword password)
+    public async Task Insert(IPassword password,
+        IEnumerable<SecureString> data)
     {
-        throw new NotImplementedException();
+        File.Create(password.Path).Close();
+        await password.Edit(data);
     }
 
-    public Task<IPassword> Generate(string name,
+    public Task<IPassword> Generate(IPassword password,
         int? length = null)
     {
         throw new NotImplementedException();
-    }
-
-
-    public async Task<IPassword> Edit(IPassword password,
-        IEnumerable<SecureString> data)
-    {
-        await password.Edit(data);
-        return password;
     }
 }

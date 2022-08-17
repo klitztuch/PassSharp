@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using LibGit2Sharp;
 using Moq;
+using Newtonsoft.Json;
 using PassSharp.Lib.Abstraction;
 using Xunit;
 
@@ -13,16 +14,16 @@ public class PassTest : IDisposable
 {
     private const string TEST_BASE_DIRECTORY = "test-files";
     private const int TEST_FILES_COUNT = 10;
-    private readonly string _passwordStoreDirectory = Path.Combine(TEST_BASE_DIRECTORY, "passwordstore-test");
+    private readonly string _passwordStoreDirectory = Path.Combine(TEST_BASE_DIRECTORY, "password-store-test");
 
     public PassTest()
     {
         Directory.CreateDirectory(_passwordStoreDirectory);
-        foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT)) File.Create($"{_passwordStoreDirectory}/test{i}");
+        foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT)) File.Create($"{_passwordStoreDirectory}/first{i}");
 
-        Directory.CreateDirectory($"{_passwordStoreDirectory}/subdir");
+        Directory.CreateDirectory($"{_passwordStoreDirectory}/subDirectory");
         foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT))
-            File.Create($"{_passwordStoreDirectory}/subdir/test{i}");
+            File.Create($"{_passwordStoreDirectory}/subDirectory/second{i}");
     }
 
     public void Dispose()
@@ -32,7 +33,7 @@ public class PassTest : IDisposable
 
 
     [Fact]
-    public async void ListTest()
+    public void ListTest()
     {
         // arrange
         const int expectedFileCount = TEST_FILES_COUNT * 2;
@@ -49,7 +50,7 @@ public class PassTest : IDisposable
     }
 
     [Fact]
-    public async void ListNoDirectoryTest()
+    public void ListNoDirectoryTest()
     {
         // arrange
         var repositoryMock = new Mock<IRepository>();
@@ -103,5 +104,30 @@ public class PassTest : IDisposable
 
         // assert
         Assert.Throws<Exception>(Result);
+    }
+
+    [Fact]
+    public void FindTest()
+    {
+        // arrange
+        var repositoryMock = new Mock<IRepository>();
+        var pass = new Pass(repositoryMock.Object)
+        {
+            PasswordStoreLocation = _passwordStoreDirectory
+        };
+
+        const string expectedFilename = "first1";
+        IPassword expectedPassword = new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
+        IEnumerable<IPassword> expectedResult = new List<IPassword>()
+        {
+            expectedPassword
+        };
+
+        // act
+        var actualResult = pass.Find(expectedFilename);
+        
+        // assert
+        Assert.Equal(JsonConvert.SerializeObject(expectedResult),
+            JsonConvert.SerializeObject(actualResult));
     }
 }

@@ -1,3 +1,4 @@
+using System.Security;
 using LibGit2Sharp;
 
 namespace PassSharp.Lib.Abstraction;
@@ -12,8 +13,8 @@ public interface IPass
     IEnumerable<IPassword> List();
     IEnumerable<IPassword> List(string subfolder);
     IEnumerable<IPassword> Find(string name);
-    Task<IPassword> Insert(IPassword password);
+    Task Insert(IPassword password, IEnumerable<SecureString> data);
 
-    Task<IPassword> Generate(string name,
+    Task<IPassword> Generate(IPassword password,
         int? length = null);
 }
