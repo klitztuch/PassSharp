@@ -1,10 +1,10 @@
-using System.Security;
+using LibGit2Sharp;
 
 namespace PassSharp.Lib.Abstraction;
 
 public interface IPass
 {
-    IGit Git { get; }
+    IRepository Repository { get; set; }
 
     string PasswordStoreLocation { get; init; }
 
@@ -16,6 +16,4 @@ public interface IPass
 
     Task<IPassword> Generate(string name,
         int? length = null);
-
-    string Version();
 }

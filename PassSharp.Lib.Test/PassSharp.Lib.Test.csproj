@@ -25,4 +25,10 @@
       <ProjectReference Include="..\PassSharp.Lib\PassSharp.Lib.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="LibGit2Sharp">
+        <HintPath>..\..\..\.nuget\packages\libgit2sharp\0.26.2\lib\netstandard2.0\LibGit2Sharp.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CliWrap" Version="3.4.4" />
       <PackageReference Include="gpgme-sharp" Version="2.0.3" />
+      <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
     </ItemGroup>
 
 </Project>

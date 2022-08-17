@@ -1,26 +1,31 @@
 using System.Security;
+using LibGit2Sharp;
 using PassSharp.Lib.Abstraction;
-using PassSharp.Lib.Adapter.Abstraction;
 
 namespace PassSharp.Lib;
 
 public class Pass : IPass
 {
-    private readonly IPassCliAdapter _passCliAdapter;
-
-    public Pass(IPassCliAdapter passCliAdapter,
-        IGit git)
+    public Pass(IRepository repository)
     {
-        _passCliAdapter = passCliAdapter;
-        Git = git;
+        Repository = repository;
+        PasswordStoreLocation ??=
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".password-store");
     }
 
-    public IGit Git { get; }
+    public IRepository Repository { get; set; }
     public string PasswordStoreLocation { get; init; }
 
     public void Init()
     {
-        throw new NotImplementedException();
+        if (!Directory.Exists(PasswordStoreLocation))
+        {
+            Directory.CreateDirectory(PasswordStoreLocation);
+        }
+        else
+        {
+            throw new Exception("PasswordStore already exists");
+        }
     }
 
     public IEnumerable<IPassword> List()
@@ -44,29 +49,9 @@ public class Pass : IPass
     }
 
 
-    public async Task<IEnumerable<SecureString>> Show(string name)
-    {
-        var passwords = Find(name);
-
-        var password = passwords.FirstOrDefault();
-        if (password is null) return Array.Empty<SecureString>();
-        return await Show(password);
-    }
-
-    public async Task<IEnumerable<SecureString>> Show(IPassword password)
-    {
-        return await password.Show();
-    }
-
     public Task<IPassword> Insert(IPassword password)
     {
         throw new NotImplementedException();
-    }
-
-    public async Task<IPassword> Edit(IPassword password, IEnumerable<SecureString> data)
-    {
-        await password.Edit(data);
-        return password;
     }
 
     public Task<IPassword> Generate(string name,
@@ -75,34 +60,11 @@ public class Pass : IPass
         throw new NotImplementedException();
     }
 
-    public void Remove(string name,
-        bool force = false)
-    {
-        throw new NotImplementedException();
-    }
 
-    public void Remove(IPassword password,
-        bool force = false)
+    public async Task<IPassword> Edit(IPassword password,
+        IEnumerable<SecureString> data)
     {
-        throw new NotImplementedException();
-    }
-
-    public void Move(string oldPath,
-        string newPath,
-        bool force = false)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Copy(string oldPath,
-        string newPath,
-        bool force = false)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string Version()
-    {
-        throw new NotImplementedException();
+        await password.Edit(data);
+        return password;
     }
 }

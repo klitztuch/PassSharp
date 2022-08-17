@@ -6,7 +6,7 @@ namespace PassSharp.Lib;
 
 public class Password : IPassword
 {
-    private FileInfo _fileInfo;
+    private readonly FileInfo _fileInfo;
     public Password(string path)
     {
         Path = path;
@@ -63,12 +63,13 @@ public class Password : IPassword
 
     public Task Copy(string destination)
     {
-        throw new NotImplementedException();
+        _fileInfo.CopyTo(destination);
+        return Task.CompletedTask;
     }
 
     public Task Copy(DirectoryInfo destination)
     {
-        throw new NotImplementedException();
+        return Copy(destination.FullName);
     }
 
     private MemoryStream OpenMemoryStream()
