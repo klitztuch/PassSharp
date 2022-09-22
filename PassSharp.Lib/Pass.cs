@@ -1,6 +1,5 @@
-using System.Security;
-using System.Security.Cryptography;
 using LibGit2Sharp;
+using Libgpgme;
 using PassSharp.Lib.Abstraction;
 
 namespace PassSharp.Lib;
@@ -12,10 +11,15 @@ public class Pass : IPass
         Repository = repository;
         PasswordStoreLocation ??=
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".password-store");
+        if (Key is null)
+        {
+            throw new Exception("Key not set");
+        }
     }
 
     public IRepository Repository { get; set; }
     public string PasswordStoreLocation { get; init; }
+    public Key Key { get; init; }
 
     public void Init()
     {
@@ -23,6 +27,14 @@ public class Pass : IPass
             Directory.CreateDirectory(PasswordStoreLocation);
         else
             throw new Exception("PasswordStore already exists");
+        
+        // create gpgId File
+        var gpgIdPath = Path.Combine(PasswordStoreLocation, ".gpg-id");
+        File.Create(gpgIdPath);
+        var streamWriter = new StreamWriter(gpgIdPath);
+        streamWriter.Write(Key.KeyId);
+        streamWriter.Flush();
+        streamWriter.Close();
     }
 
     public IEnumerable<IPassword> List()
@@ -45,8 +57,13 @@ public class Pass : IPass
         return passwords;
     }
 
+    public IEnumerable<IPassword> FuzzyFind(string name)
+    {
+        return Find($"*{name}*");
+    }
+
     public async Task Insert(IPassword password,
-        IEnumerable<SecureString> data)
+        IEnumerable<string> data)
     {
         File.Create(password.Path).Close();
         await password.Edit(data);

@@ -19,11 +19,11 @@ public class PassTest : IDisposable
     public PassTest()
     {
         Directory.CreateDirectory(_passwordStoreDirectory);
-        foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT)) File.Create($"{_passwordStoreDirectory}/first{i}");
+        foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT)) File.Create($"{_passwordStoreDirectory}/first{i}.gpg");
 
         Directory.CreateDirectory($"{_passwordStoreDirectory}/subDirectory");
         foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT))
-            File.Create($"{_passwordStoreDirectory}/subDirectory/second{i}");
+            File.Create($"{_passwordStoreDirectory}/subDirectory/second{i}.gpg");
     }
 
     public void Dispose()
@@ -116,7 +116,7 @@ public class PassTest : IDisposable
             PasswordStoreLocation = _passwordStoreDirectory
         };
 
-        const string expectedFilename = "first1";
+        const string expectedFilename = "first1.gpg";
         IPassword expectedPassword = new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
         IEnumerable<IPassword> expectedResult = new List<IPassword>()
         {
@@ -129,5 +129,58 @@ public class PassTest : IDisposable
         // assert
         Assert.Equal(JsonConvert.SerializeObject(expectedResult),
             JsonConvert.SerializeObject(actualResult));
+    }
+    
+    [Fact]
+    public void FuzzyFindTest()
+    {
+        // arrange
+        var repositoryMock = new Mock<IRepository>();
+        var pass = new Pass(repositoryMock.Object)
+        {
+            PasswordStoreLocation = _passwordStoreDirectory
+        };
+
+        const string expectedFilename = "first1";
+        IPassword expectedPassword = new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
+        IEnumerable<IPassword> expectedResult = new List<IPassword>()
+        {
+            expectedPassword
+        };
+
+        // act
+        var actualResult = pass.FuzzyFind(expectedFilename);
+        
+        // assert
+        Assert.Equal(JsonConvert.SerializeObject(expectedResult),
+            JsonConvert.SerializeObject(actualResult));
+    }
+
+    [Fact]
+    public async void InsertTest()
+    {
+        // arrange
+        var repositoryMock = new Mock<IRepository>();
+        var pass = new Pass(repositoryMock.Object)
+        {
+            PasswordStoreLocation = _passwordStoreDirectory
+        };
+
+        const string expectedFilename = "my-new-password-file.gpg";
+        const string expectedPasswordValue = "my-test-password";
+        IPassword expectedPassword = new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
+        IEnumerable<IPassword> expectedResult = new List<IPassword>()
+        {
+            expectedPassword
+        };
+
+        // act
+        await pass.Insert(expectedPassword, new List<string>()
+        {
+            expectedPasswordValue
+        });
+        
+        // assert
+        Assert.True(File.Exists(expectedPassword.Path));
     }
 }

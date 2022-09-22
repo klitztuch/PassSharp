@@ -1,4 +1,4 @@
-using System.Security;
+using System.Text;
 using Libgpgme;
 using PassSharp.Lib.Abstraction;
 
@@ -7,41 +7,28 @@ namespace PassSharp.Lib;
 public class Password : IPassword
 {
     private readonly FileInfo _fileInfo;
+
     public Password(string path)
     {
-        Path = path;
+        //TODO: init key
+        Path = path.EndsWith(".gpg") ? path : path + ".gpg";
         _fileInfo = new FileInfo(path);
     }
 
 
     public string Path { get; set; }
+    public Key Key { get; set; }
 
-    public async Task<IEnumerable<SecureString>> Show()
+    public async Task<IEnumerable<string>> Show()
     {
-        using var memoryStream = OpenMemoryStream();
-        using var reader = new StreamReader(memoryStream);
-        var content = new List<SecureString>();
-        var fileContent = (await reader.ReadToEndAsync()).Split(Environment.NewLine);
+        var fileContent = await Decrypt();
 
-        foreach (var pair in fileContent)
-        {
-            var secureString = new SecureString();
-            foreach (var chars in pair) secureString.AppendChar(chars);
-            content.Add(secureString);
-        }
-
-        return content;
+        return fileContent;
     }
 
-    public async Task Edit(IEnumerable<SecureString> data)
+    public async Task Edit(IEnumerable<string> data)
     {
-        using var memoryStream = OpenMemoryStream();
-        await using var writer = new StreamWriter(memoryStream);
-        foreach (var secureString in data)
-        {
-            await writer.WriteLineAsync(secureString.ToString());
-        }
-        await writer.FlushAsync();
+        await Encrypt(data);
     }
 
     public Task Remove()
@@ -72,23 +59,60 @@ public class Password : IPassword
         return Copy(destination.FullName);
     }
 
-    private MemoryStream OpenMemoryStream()
+
+    private async Task<string[]> Decrypt()
     {
-        var file = new GpgmeMemoryData(Path);
-        var memoryStream = new MemoryStream();
+        await using var file = new GpgmeMemoryData(Path);
+        using var memoryStream = new MemoryStream();
         var streamData = new GpgmeStreamData(memoryStream);
 
         var context = new Context();
         context.SetEngineInfo(Protocol.OpenPGP, null, null);
 
         var dest = context.Decrypt(file, streamData);
+        // close file after decryption
+        file.Close();
         if (dest == null)
         {
             throw new DecryptionFailedException("Decryption failed");
         }
 
         memoryStream.Position = 0;
-        file.Close();
-        return memoryStream;
+        using var reader = new StreamReader(memoryStream);
+        var fileContent = (await reader.ReadToEndAsync()).Split(Environment.NewLine);
+        return fileContent;
+    }
+
+    private async Task Encrypt(IEnumerable<string> data)
+    {
+        var utf8 = new UTF8Encoding();
+        GpgmeData plain = new GpgmeMemoryData();
+        // TODO: is filename used?
+        plain.FileName = "my_document.txt";
+
+        var streamWriter = new StreamWriter(plain, utf8);
+        foreach (var line in data)
+        {
+            await streamWriter.WriteLineAsync(line);
+        }
+
+        await streamWriter.FlushAsync();
+
+        GpgmeData cipherfile = new GpgmeFileData(
+            Path,
+            FileMode.Create,
+            FileAccess.ReadWrite);
+
+        var context = new Context();
+        context.SetEngineInfo(Protocol.OpenPGP, null, null);
+
+        context.Encrypt(
+            new[] { Key },
+            EncryptFlags.AlwaysTrust,
+            plain,
+            cipherfile);
+
+        plain.Close();
+        cipherfile.Close();
     }
 }
