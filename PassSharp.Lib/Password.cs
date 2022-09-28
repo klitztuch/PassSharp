@@ -10,7 +10,6 @@ public class Password : IPassword
 
     public Password(string path)
     {
-        //TODO: init key
         Path = path.EndsWith(".gpg") ? path : path + ".gpg";
         _fileInfo = new FileInfo(path);
     }

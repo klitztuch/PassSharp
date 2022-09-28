@@ -8,10 +8,14 @@ public interface IPass
     IRepository Repository { get; set; }
 
     string PasswordStoreLocation { get; init; }
-    
-    Key Key { get; init; }
-
-    void Init();
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="gpgIds"></param>
+    /// <param name="subPath"></param>
+    /// <returns></returns>
+    Task Init(string[] gpgIds,
+        string? subPath = null);
     IEnumerable<IPassword> List();
     IEnumerable<IPassword> List(string subfolder);
     IEnumerable<IPassword> Find(string name);

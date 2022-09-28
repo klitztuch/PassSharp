@@ -11,29 +11,40 @@ public class Pass : IPass
         Repository = repository;
         PasswordStoreLocation ??=
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".password-store");
-        if (Key is null)
-        {
-            throw new Exception("Key not set");
-        }
     }
 
     public IRepository Repository { get; set; }
     public string PasswordStoreLocation { get; init; }
-    public Key Key { get; init; }
 
-    public void Init()
+    public async Task Init(string[] gpgIds,
+        string? subPath = null)
     {
         if (!Directory.Exists(PasswordStoreLocation))
+        {
             Directory.CreateDirectory(PasswordStoreLocation);
-        else
-            throw new Exception("PasswordStore already exists");
-        
+        }
+
+        // get store owner id
+        var context = new Context();
+        context.SetEngineInfo(Protocol.OpenPGP, null, null);
+        var keys = context.KeyStore.GetKeyList(gpgIds, false);
+        if (keys.Length == 0)
+        {
+            throw new Exception("No key found");
+        }
+
         // create gpgId File
-        var gpgIdPath = Path.Combine(PasswordStoreLocation, ".gpg-id");
+        var gpgIdPath = string.IsNullOrEmpty(subPath)
+            ? Path.Combine(PasswordStoreLocation, ".gpg-id")
+            : Path.Combine(PasswordStoreLocation, subPath, ".gpg-id");
+
         File.Create(gpgIdPath);
         var streamWriter = new StreamWriter(gpgIdPath);
-        streamWriter.Write(Key.KeyId);
-        streamWriter.Flush();
+        foreach (var key in keys)
+        {
+            await streamWriter.WriteLineAsync(key.Fingerprint);
+        }
+        await streamWriter.FlushAsync();
         streamWriter.Close();
     }
 

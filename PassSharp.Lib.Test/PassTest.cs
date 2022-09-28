@@ -10,20 +10,28 @@ using Xunit;
 
 namespace PassSharp.Lib.Test;
 
+[Collection(nameof(PassCollection))]
 public class PassTest : IDisposable
 {
     private const string TEST_BASE_DIRECTORY = "test-files";
     private const int TEST_FILES_COUNT = 10;
+    private readonly GpgFixture _gpgFixture;
     private readonly string _passwordStoreDirectory = Path.Combine(TEST_BASE_DIRECTORY, "password-store-test");
 
-    public PassTest()
+    public PassTest(GpgFixture gpgFixture)
     {
+        _gpgFixture = gpgFixture;
         Directory.CreateDirectory(_passwordStoreDirectory);
-        foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT)) File.Create($"{_passwordStoreDirectory}/first{i}.gpg");
+        foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT))
+        {
+            File.Create($"{_passwordStoreDirectory}/first{i}.gpg");
+        }
 
         Directory.CreateDirectory($"{_passwordStoreDirectory}/subDirectory");
         foreach (var i in Enumerable.Range(0, TEST_FILES_COUNT))
+        {
             File.Create($"{_passwordStoreDirectory}/subDirectory/second{i}.gpg");
+        }
     }
 
     public void Dispose()
@@ -79,8 +87,9 @@ public class PassTest : IDisposable
             PasswordStoreLocation = Path.Combine(_passwordStoreDirectory, "-new")
         };
 
+
         // act
-        pass.Init();
+        pass.Init(new[] { _gpgFixture.Key.Uids.Email });
 
         // assert
         Assert.True(Directory.Exists(_passwordStoreDirectory));
@@ -99,7 +108,7 @@ public class PassTest : IDisposable
         // act
         void Result()
         {
-            pass.Init();
+            pass.Init(new[] { _gpgFixture.Key.Uids.Email });
         }
 
         // assert
@@ -117,20 +126,21 @@ public class PassTest : IDisposable
         };
 
         const string expectedFilename = "first1.gpg";
-        IPassword expectedPassword = new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
-        IEnumerable<IPassword> expectedResult = new List<IPassword>()
+        IPassword expectedPassword =
+            new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
+        IEnumerable<IPassword> expectedResult = new List<IPassword>
         {
             expectedPassword
         };
 
         // act
         var actualResult = pass.Find(expectedFilename);
-        
+
         // assert
         Assert.Equal(JsonConvert.SerializeObject(expectedResult),
             JsonConvert.SerializeObject(actualResult));
     }
-    
+
     [Fact]
     public void FuzzyFindTest()
     {
@@ -142,15 +152,16 @@ public class PassTest : IDisposable
         };
 
         const string expectedFilename = "first1";
-        IPassword expectedPassword = new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
-        IEnumerable<IPassword> expectedResult = new List<IPassword>()
+        IPassword expectedPassword =
+            new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
+        IEnumerable<IPassword> expectedResult = new List<IPassword>
         {
             expectedPassword
         };
 
         // act
         var actualResult = pass.FuzzyFind(expectedFilename);
-        
+
         // assert
         Assert.Equal(JsonConvert.SerializeObject(expectedResult),
             JsonConvert.SerializeObject(actualResult));
@@ -168,18 +179,19 @@ public class PassTest : IDisposable
 
         const string expectedFilename = "my-new-password-file.gpg";
         const string expectedPasswordValue = "my-test-password";
-        IPassword expectedPassword = new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
-        IEnumerable<IPassword> expectedResult = new List<IPassword>()
+        IPassword expectedPassword =
+            new Password(Path.Combine(Environment.CurrentDirectory, _passwordStoreDirectory, expectedFilename));
+        IEnumerable<IPassword> expectedResult = new List<IPassword>
         {
             expectedPassword
         };
 
         // act
-        await pass.Insert(expectedPassword, new List<string>()
+        await pass.Insert(expectedPassword, new List<string>
         {
             expectedPasswordValue
         });
-        
+
         // assert
         Assert.True(File.Exists(expectedPassword.Path));
     }
