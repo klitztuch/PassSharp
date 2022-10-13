@@ -5,9 +5,9 @@ namespace PassSharp.Lib.Service.Abstraction;
 public interface IGpgService
 {
     
-    string Encrypt(string data);
+    Task Encrypt(Key key, IEnumerable<string> data, string path);
 
-    string Decrypt(string data);
+    Task<string[]> Decrypt(string path);
 
     Key[] GetKeys(string[] gpgIds);
 }
