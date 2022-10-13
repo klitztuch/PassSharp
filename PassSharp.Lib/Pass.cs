@@ -28,15 +28,6 @@ public class Pass : IPass
             Directory.CreateDirectory(PasswordStoreLocation);
         }
 
-        // get store owner id
-        var context = new Context();
-        context.SetEngineInfo(Protocol.OpenPGP, null, null);
-        var keys = context.KeyStore.GetKeyList(gpgIds, false);
-        if (keys.Length == 0)
-        {
-            throw new Exception("No key found");
-        }
-
         // create gpgId File
         var gpgIdPath = string.IsNullOrEmpty(subPath)
             ? Path.Combine(PasswordStoreLocation, ".gpg-id")
@@ -44,6 +35,8 @@ public class Pass : IPass
 
         File.Create(gpgIdPath);
         var streamWriter = new StreamWriter(gpgIdPath);
+
+        var keys = _gpgService.GetKeys(gpgIds);
         foreach (var key in keys)
         {
             await streamWriter.WriteLineAsync(key.Fingerprint);
