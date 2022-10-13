@@ -75,6 +75,14 @@ public sealed class GpgService : IGpgService
 
     public Key[] GetKeys(string[] gpgIds)
     {
-        throw new NotImplementedException();
+        var context = new Context();
+        context.SetEngineInfo(Protocol.OpenPGP, null, null);
+        var keys = context.KeyStore.GetKeyList(gpgIds, false);
+        if (keys.Length == 0)
+        {
+            throw new Exception("No key found");
+        }
+
+        return keys;
     }
 }
