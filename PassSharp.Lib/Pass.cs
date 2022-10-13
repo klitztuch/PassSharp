@@ -1,13 +1,17 @@
 using LibGit2Sharp;
 using Libgpgme;
 using PassSharp.Lib.Abstraction;
+using PassSharp.Lib.Service.Abstraction;
 
 namespace PassSharp.Lib;
 
 public class Pass : IPass
 {
-    public Pass(IRepository repository)
+    private readonly IGpgService _gpgService;
+
+    public Pass(IRepository repository, IGpgService gpgService)
     {
+        _gpgService = gpgService;
         Repository = repository;
         PasswordStoreLocation ??=
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), ".password-store");
@@ -57,14 +61,14 @@ public class Pass : IPass
     {
         var directory = new DirectoryInfo(PasswordStoreLocation);
         return directory.GetFiles("*", SearchOption.AllDirectories)
-            .Select(o => new Password(o.FullName));
+            .Select(o => new Password(_gpgService, o.FullName));
     }
 
     public IEnumerable<IPassword> Find(string name)
     {
         var passwordStore = new DirectoryInfo(PasswordStoreLocation);
         var passwords = passwordStore.GetFiles(name, SearchOption.AllDirectories)
-            .Select(o => new Password(o.FullName));
+            .Select(o => new Password(_gpgService, o.FullName));
         return passwords;
     }
 
