@@ -15,9 +15,15 @@ public sealed class GpgService : IGpgService
 
     private GpgService()
     {
-        
+        if (Key is null)
+        {
+            throw new ArgumentNullException($"Key is null");
+        }
     }
-    public async Task Encrypt(Key key, IEnumerable<string> data, string path)
+
+    public Key Key { get; init; }
+
+    public async Task Encrypt(IEnumerable<string> data, string path)
     {
         var utf8 = new UTF8Encoding();
         GpgmeData plain = new GpgmeMemoryData();
@@ -41,7 +47,7 @@ public sealed class GpgService : IGpgService
         context.SetEngineInfo(Protocol.OpenPGP, null, null);
 
         context.Encrypt(
-            new[] { key },
+            new[] { Key },
             EncryptFlags.AlwaysTrust,
             plain,
             cipherfile);
@@ -73,7 +79,7 @@ public sealed class GpgService : IGpgService
         return fileContent;
     }
 
-    public Key[] GetKeys(string[] gpgIds)
+    public IEnumerable<Key> GetKeys(string[] gpgIds)
     {
         var context = new Context();
         context.SetEngineInfo(Protocol.OpenPGP, null, null);

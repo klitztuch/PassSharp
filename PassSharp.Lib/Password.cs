@@ -1,5 +1,3 @@
-using System.Text;
-using Libgpgme;
 using PassSharp.Lib.Abstraction;
 using PassSharp.Lib.Service.Abstraction;
 
@@ -7,8 +5,8 @@ namespace PassSharp.Lib;
 
 public class Password : IPassword
 {
-    private readonly IGpgService _gpgService;
     private readonly FileInfo _fileInfo;
+    private readonly IGpgService _gpgService;
 
     public Password(IGpgService gpgService,
         string path)
@@ -20,7 +18,7 @@ public class Password : IPassword
 
 
     public string Path { get; set; }
-    public Key Key { get; set; }
+    // public Key Key { get; set; }
 
     public async Task<IEnumerable<string>> Show()
     {
@@ -70,6 +68,6 @@ public class Password : IPassword
 
     private async Task Encrypt(IEnumerable<string> data)
     {
-        await _gpgService.Encrypt(Key, data, Path);
+        await _gpgService.Encrypt(data, Path);
     }
 }
