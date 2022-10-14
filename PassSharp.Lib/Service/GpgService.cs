@@ -6,13 +6,6 @@ namespace PassSharp.Lib.Service;
 
 public sealed class GpgService : IGpgService
 {
-    private static readonly Lazy<GpgService> Lazy = new Lazy<GpgService>(() => new GpgService());
-
-    public static GpgService Instance
-    {
-        get { return Lazy.Value; }
-    }
-
     private GpgService()
     {
         if (Key is null)
